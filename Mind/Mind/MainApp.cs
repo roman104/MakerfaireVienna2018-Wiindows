@@ -305,8 +305,6 @@ namespace Mind
 
                             attention.Add(mindRecord.iAttention);
                             meditation.Add(mindRecord.iMeditation);
-                           // createWaweforms();
-                            //mindRecords.Add(mindRecord);
                             file.WriteLine(mindRecord.getCSVRecord());
                             file.Flush();
                             await Task.Delay(1000);
@@ -420,6 +418,7 @@ namespace Mind
         {
             createWaweforms();
             createHistogram();
+            getLongestPeriod();
         }
 
         private void createWaweforms()
@@ -476,11 +475,11 @@ namespace Mind
             {
                 createdHistogram = true;
 
-                chart2.Series.Add("HistogramM");
-                chart2.Series["HistogramM"].ChartType = SeriesChartType.Column;
+                chart2.Series.Add("Meditation");
+                chart2.Series["Meditation"].ChartType = SeriesChartType.Column;
 
-                chart2.Series.Add("HistogramA");
-                chart2.Series["HistogramA"].ChartType = SeriesChartType.Column;
+                chart2.Series.Add("Attention");
+                chart2.Series["Attention"].ChartType = SeriesChartType.Column;
             }
 
             int[] histogramMeditation = new int[10];
@@ -518,8 +517,8 @@ namespace Mind
 
             for (int i = 1; i <= 10; i++)
             { 
-                chart2.Series["HistogramM"].Points.AddXY(i * 10, histogramMeditation[i-1]);
-                chart2.Series["HistogramM"].ChartArea = "ChartArea1";
+                chart2.Series["Meditation"].Points.AddXY(i * 10, histogramMeditation[i-1]);
+                chart2.Series["Meditation"].ChartArea = "ChartArea1";
             }
 
             foreach (var value in attention)
@@ -538,9 +537,56 @@ namespace Mind
 
             for (int i = 1; i <= 10; i++)
             {
-                chart2.Series["HistogramA"].Points.AddXY(i * 10, histogramAttention[i - 1]);
-                chart2.Series["HistogramA"].ChartArea = "ChartArea1";
+                chart2.Series["Attention"].Points.AddXY(i * 10, histogramAttention[i - 1]);
+                chart2.Series["Attention"].ChartArea = "ChartArea1";
             }
+        }
+
+        private void getLongestPeriod()
+        {
+            int meditationPeriod = 0;
+            bool meditationOverMin = false;
+            int maxMeditationPeriod = 0;
+
+            int valueToCompareTo = int.Parse(trackBarValue.Text.ToString());
+
+            foreach (var value in meditation)
+            {
+                if (value > valueToCompareTo)
+                {
+                    meditationPeriod++;
+                    meditationOverMin = true;
+                    if (maxMeditationPeriod < meditationPeriod) maxMeditationPeriod = meditationPeriod;
+                }
+                else
+                {
+                    meditationPeriod = 0;
+                    meditationOverMin = false;
+                }
+
+            }
+
+            int attentionPeriod = 0;
+            bool attentionOverMin = false;
+            int maxAttentionPeriod = 0;
+
+            foreach (var value in attention)
+            {
+                if (value > valueToCompareTo)
+                {
+                    attentionPeriod++;
+                    attentionOverMin = true;
+                    if (maxAttentionPeriod < attentionPeriod) maxAttentionPeriod = attentionPeriod;
+                }
+                else
+                {
+                    attentionPeriod = 0;
+                    attentionOverMin = false;
+                }
+
+            }
+            output.Text = "The longest period > " + valueToCompareTo + " in meditation: " + maxMeditationPeriod + " s \r\n";
+            output.Text += "The longest period > " + valueToCompareTo + " in attention: " + maxAttentionPeriod + " s";
         }
 
         private void chart2_Click(object sender, EventArgs e)
@@ -554,6 +600,21 @@ namespace Mind
             var app = new MainApp();
             app.Closed += (s, args) => this.Close();
             app.Show();
+        }
+
+        private void output_TextChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void MainApp_Load(object sender, EventArgs e)
+        {
+
+        }
+
+        private void trackBar1_Scroll(object sender, EventArgs e)
+        {
+            trackBarValue.Text = trackBar1.Value.ToString();
         }
     }
 }
